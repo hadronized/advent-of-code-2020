@@ -64,18 +64,17 @@ end
 io.write('Part 1: ', valid_count, ' passwords are valid\n')
 
 function part_2(rule)
-  local first = 0
-  local second = 0
+  local count = 0
 
   if (rule.pwd:sub(rule.lower, rule.lower) == rule.letter) then
-    first = first + 1
+    count = count + 1
   end
 
   if (rule.pwd:sub(rule.upper, rule.upper) == rule.letter) then
-    second = second + 1
+    count = count + 1
   end
 
-  return first + second == 1
+  return count == 1
 end
 
 local valid_count_part_2 = 0
