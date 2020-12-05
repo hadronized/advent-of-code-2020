@@ -40,7 +40,7 @@ function SeatID(row, col)
 end
 
 -- for part 2
-passes = {}
+local passes = {}
 for i = 1, 128 * 8 do
   passes[#passes + 1] = false
 end
