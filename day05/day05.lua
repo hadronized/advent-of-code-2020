@@ -53,9 +53,7 @@ for i = 1, #lines do
   print(seat_id)
   max_seat_id = math.max(max_seat_id, seat_id)
 
-  if (row ~= 0 and row ~= 127) then
-    passes[seat_id + 1] = true
-  end
+  passes[seat_id + 1] = true
 end
 
 print("Part 1:", max_seat_id)
@@ -63,7 +61,7 @@ print("Part 1:", max_seat_id)
 for i = 1, #passes do
   local seat_id = i - 1
   if (not passes[seat_id] and passes[seat_id - 1] and passes[seat_id + 1]) then
-    print("Part 2: ", seat_id - 1)
+    print("Part 2:", seat_id - 1)
     break
   end
 end
