@@ -49,14 +49,11 @@ Part1(grps)
 function Part2(groups)
   local total = 0
   for _ , group in pairs(groups) do
-    local count = 0
     for _, l in pairs(group.group) do
       if (l == group.persons) then
-        count = count + 1
+        total = total + 1
       end
     end
-
-    total = total + count
   end
 
   print('Part 2:', total)
