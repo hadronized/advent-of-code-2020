@@ -72,18 +72,17 @@ function Part2(code)
   for i = 1, #code do
     local operator = code[i].operator
     if (operator == 'nop' or operator == 'jmp') then
-      local new_code = code
-      new_code[i].operator = SwitchInstr(operator)
+      code[i].operator = SwitchInstr(operator)
 
       local ctx = { global = 0 }
-      local ip = Run(ctx, new_code)
-      if (ip == #new_code + 1) then
+      local ip = Run(ctx, code)
+      if (ip == #code + 1) then
         print(string.format('Part 2: %d', ctx.global))
         break
       end
 
-      -- reset the instruction so that the next iteratons (if any) are not corrupted by this run
-      new_code[i].operator = operator
+      -- reset the instruction so that the next iterations (if any) are not corrupted by this run
+      code[i].operator = operator
     end
   end
 end
