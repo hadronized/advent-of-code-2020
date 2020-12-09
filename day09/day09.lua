@@ -69,7 +69,7 @@ function Part1(numbers)
 
     -- update the sum map to evict all pairs containing the number to evict
     local to_evict = numbers[i - COUNT]
-    for sum, sum_n in pairs(sum_map) do
+    for _, sum_n in pairs(sum_map) do
       sum_n[to_evict] = nil
 
       -- if the sum has no associated numbers anymore, remove the sum
