@@ -10,15 +10,6 @@ function GetNumbers()
   return numbers
 end
 
--- (x, y) -> (min(x, y), max(x, y))
-function MinMaxPair(x, y)
-  if (x < y) then
-    return x, y
-  else
-    return y, x
-  end
-end
-
 -- Ce langage est une putain de blague.
 function tlen(t)
   local n = 0
@@ -36,7 +27,6 @@ function ComputeSums(numbers, sum_map, a, i, z)
 
     if (a ~= b) then
       local sum = a + b
-      local i, j = MinMaxPair(i, j)
 
       if (sum_map[sum] == nil) then
         sum_map[sum] = { [i] = {}, [j] = {} }
