@@ -1,17 +1,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 import Data.List (foldl', scanl', sort)
 import Numeric.Natural (Natural)
-import qualified Data.Map as M
-import Control.Monad.State (State(..), get)
+import Control.DeepSeq
+import GHC.Generics (Generic)
 
 main :: IO ()
 main = do
     numbers :: [Int] <- fmap (sort . map read . lines) (readFile "input.txt")
     let (_, ones, threes) = part1 numbers
     putStrLn $ "Part 1: " <> show (ones * (threes + 1))
-    -- let t = trie M.empty 0 numbers
-    -- print (countTrie t)
+    let !t = trie 0 numbers
+    print $ countTrie t
   where
     part1 = flip foldl' (0, 0, 0) diff
     diff (prev, ones, threes) n
@@ -19,27 +21,23 @@ main = do
       | n - prev == 3 = (n, ones, threes + 1)
       | otherwise = (n, ones, threes)
 
-data Trie a = Trie a [Trie a] deriving (Eq, Show)
+data Trie a = Trie !a ![Trie a] deriving (Eq, Show, Generic)
 
-trie :: Int -> [Int] -> State (M.Map [Int] (Trie Int)) (Trie Int)
-trie _ [] = error "impossible"
-trie _ [x] = pure $ Trie x []
-trie n l@(a:b:xs) = do
-    memo <- get
-    case M.lookup l memo of
-      Just t -> pure t
-      Nothing -> do
-        let children = if b - n <= 3 then [subtree, trie memo n (b:xs)] else [subtree]
-        storeAndPure memo l (Trie a children)
+instance NFData a => NFData (Trie a)
+
+trie :: Int -> [Int] -> Trie Int
+trie n [] = Trie n []
+trie n [x] = Trie n [trie x []]
+trie n (a:b:xs)
+    | b - n <= 3 = Trie n [subtree, t2]
+    | otherwise = Trie n [subtree]
   where
-    subtree = trie memo a (b:xs)
-    storeAndPure memo l t = do
-      set (M.insert l t)
-      pure t
+    subtree = let x = trie a (b:xs) in deepseq x x
+    t2 = let x = trie n (b:xs) in deepseq x x
 
 countTrie :: Trie a -> Natural
-countTrie (Trie n []) = 1
-countTrie (Trie n ts) = sum (map countTrie ts)
+countTrie (Trie !n []) = 1
+countTrie (Trie !n !ts) = foldl' (\sum t -> sum + countTrie t) 0 ts
 
 trieToString :: (Show a) => Trie a -> String
 trieToString (Trie a l) = unlines (concatMap (trieToString_ [a]) l)
