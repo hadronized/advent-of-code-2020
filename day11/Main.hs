@@ -24,10 +24,10 @@ solve :: Vector (Vector Char) -> Rule -> Int
 solve grid' rule = go grid'
   where
     go grid =
-      let newGrid = mutateMap rule grid
+      let newGrid = mutateMap grid
       in if newGrid == grid then countOccupied newGrid else go newGrid
     countOccupied = V.sum . fmap (V.sum . fmap isOccupied)
-    mutateMap rule grid = imap mutateRow grid
+    mutateMap grid = imap mutateRow grid
       where
         mutateRow y = imap (mutateCol y)
         mutateCol y x = rule x y grid
