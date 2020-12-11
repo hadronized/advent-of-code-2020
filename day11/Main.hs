@@ -6,8 +6,8 @@ import qualified Data.Vector as V (sum)
 
 main :: IO ()
 main = do
-    map <- fromList . map fromList . lines <$> readFile "input.txt"
-    print $ solve <$> [rule1, rule2] <*> pure map
+    grid <- fromList . map fromList . lines <$> readFile "input.txt"
+    print $ solve grid <$> [rule1, rule2]
   where
     rule1 = genRule 4 $ \getCell x y dx dy  -> getCell (x + dx) (y + dy)
     rule2 = genRule 5 coFind
@@ -20,20 +20,20 @@ main = do
 
 type Rule = Int -> Int -> Vector (Vector Char) -> Char -> Char
 
-solve :: Rule -> Vector (Vector Char) -> Int
-solve rule = go
+solve :: Vector (Vector Char) -> Rule -> Int
+solve grid' rule = go grid'
   where
-    go map =
-      let newMap = mutateMap rule map
-      in if newMap == map then countOccupied newMap else go newMap
+    go grid =
+      let newGrid = mutateMap rule grid
+      in if newGrid == grid then countOccupied newGrid else go newGrid
     countOccupied = V.sum . fmap (V.sum . fmap isOccupied)
-    mutateMap rule map = imap mutateRow map
+    mutateMap rule grid = imap mutateRow grid
       where
         mutateRow y = imap (mutateCol y)
-        mutateCol y x = rule x y map
+        mutateCol y x = rule x y grid
 
 genRule :: Int -> ((Int -> Int -> Maybe Char) -> Int -> Int -> Int -> Int -> Maybe Char) -> Rule
-genRule overcrowded findCell x y map cell =
+genRule overcrowded findCell x y grid cell =
     case cell of
       'L' -> if adjacentSeats == 0 then '#' else 'L'
       '#' -> if adjacentSeats >= overcrowded then 'L' else '#'
@@ -43,7 +43,7 @@ genRule overcrowded findCell x y map cell =
     seats = [isOccupied <$> findCell getCell x y x' y' | x' <- [-1..1], y' <- [-1..1], x' /= 0 || y' /= 0]
     getCell :: Int -> Int -> Maybe Char
     getCell x y = do
-      row <- map !? y
+      row <- grid !? y
       row !? x
 
 isOccupied :: Char -> Int
