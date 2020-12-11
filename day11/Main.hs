@@ -9,9 +9,6 @@ main = do
   map <- fromList . map fromList . lines <$> readFile "input.txt"
   print $ solve <$> [golRule1, golRule2] <*> pure map
 
-part1 :: Vector (Vector Char) -> Int
-part1 = solve golRule1
-
 solve :: Rule -> Vector (Vector Char) -> Int
 solve rule = go
   where
