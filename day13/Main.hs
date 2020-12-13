@@ -2,10 +2,12 @@
 
 module Main where
 
-import Control.Arrow ((&&&))
-import Data.List (groupBy, minimumBy)
-import Data.Ord (comparing)
 import Control.Applicative ((<|>))
+import Control.Arrow ((&&&))
+import Data.Foldable (find)
+import Data.List (groupBy, minimumBy)
+import Data.Maybe (isJust)
+import Data.Ord (comparing)
 
 main :: IO ()
 main = do
@@ -13,16 +15,16 @@ main = do
     putStrLn $ "Part 1: " <> show (part1 earliest busIDs)
     putStrLn $ "Part 2: " <> show (part2 busIDs)
   where
-    parse :: [String] -> (Int, [Int])
+    parse :: [String] -> (Integer, [Integer])
     parse [e, b] = (read e, map read' . filter (\a -> a /= ",") $ groupBy (\a b -> a /= ',' && b /= ',') b)
     read' x = if x == "x" then -1 else read x
 
-part1 :: Int -> [Int] -> Int
+part1 :: Integer -> [Integer] -> Integer
 part1 earliest = uncurry (*) . minimumBy (comparing snd) . map (id &&& minutesToWait) . filter (>= 0)
   where
     minutesToWait x = x - earliest `mod` x
 
-part2 :: [Int] -> Int
+part2 :: [Integer] -> Integer
 part2 (x:xs) = solve
   where
     solve = until' (\k -> findEarliest (x * k) constrained)
@@ -33,7 +35,7 @@ part2 (x:xs) = solve
       | otherwise = Nothing
 
 -- At first I was using <|>, but it accumulates thunks in memory :()
-until' :: (Int -> Maybe b) -> b
+until' :: (Integer -> Maybe b) -> b
 until' f = go 1
   where
     go k = case f k of
