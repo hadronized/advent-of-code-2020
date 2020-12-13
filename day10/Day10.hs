@@ -1,47 +1,35 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE DeriveGeneric #-}
-
-import Data.List (foldl', scanl', sort)
-import Numeric.Natural (Natural)
-import Control.DeepSeq
-import GHC.Generics (Generic)
+import Data.List (foldl', sort)
+import Data.Map as M (Map, empty, insert, lookup)
 
 main :: IO ()
 main = do
-    numbers :: [Int] <- fmap (sort . map read . lines) (readFile "input.txt")
+    numbers <- fmap (addLast3 . sort . map read . lines) (readFile "input.txt")
     let (_, ones, threes) = part1 numbers
-    putStrLn $ "Part 1: " <> show (ones * (threes + 1))
-    let !t = trie 0 numbers
-    print $ countTrie t
+    putStrLn $ "Part 1: " <> show (ones * threes)
+    putStrLn $ "Part 2: " <> show (part2 numbers)
   where
+    addLast3 [x] = [x, x + 3]
+    addLast3 (x:xs) = x : addLast3 xs
     part1 = flip foldl' (0, 0, 0) diff
     diff (prev, ones, threes) n
       | n - prev == 1 = (n, ones + 1, threes)
       | n - prev == 3 = (n, ones, threes + 1)
       | otherwise = (n, ones, threes)
 
-data Trie a = Trie !a ![Trie a] deriving (Eq, Show, Generic)
+unsafeFromJust :: Maybe a -> a
+unsafeFromJust (Just a) = a
+unsafeFromJust Nothing = error "unsafeFromJust Nothing"
 
-instance NFData a => NFData (Trie a)
-
-trie :: Int -> [Int] -> Trie Int
-trie n [] = Trie n []
-trie n [x] = Trie n [trie x []]
-trie n (a:b:xs)
-    | b - n <= 3 = Trie n [subtree, t2]
-    | otherwise = Trie n [subtree]
+part2 :: [Int] -> Map [Int] Int
+part2 = go empty []
   where
-    subtree = let x = trie a (b:xs) in deepseq x x
-    t2 = let x = trie n (b:xs) in deepseq x x
-
-countTrie :: Trie a -> Natural
-countTrie (Trie !n []) = 1
-countTrie (Trie !n !ts) = foldl' (\sum t -> sum + countTrie t) 0 ts
-
-trieToString :: (Show a) => Trie a -> String
-trieToString (Trie a l) = unlines (concatMap (trieToString_ [a]) l)
-
-trieToString_ :: (Show a) => [a] -> Trie a -> [String]
-trieToString_ h (Trie n []) = [show . reverse $ n : h]
-trieToString_ h (Trie n l) = concatMap (trieToString_ (n : h)) l
+    go :: Map [Int] Int -> [Int] -> [Int] -> Map [Int] Int
+    go memo pl l@[x, y] = M.insert l 1 memo
+    go memo pl l@(a:b:c:xs)
+        | c - b <= 3 = let memo'' = go' in insert l (1 + unsafeFromJust (M.lookup (b:c:xs) memo'')) memo''
+        | otherwise = insert l next memo'
+      where
+        go' = go memo' [] (reverse pl ++ l)
+        l = b:c:xs
+        memo' = go memo (a:pl) l
+        next = unsafeFromJust $ M.lookup l memo'
