@@ -32,7 +32,7 @@ part2 (x:xs) = solve
       | (xk + i) `mod` busID == 0 = findEarliest xk bs
       | otherwise = Nothing
 
--- At first I was using <|>, but it accumulates thinks in memory :()
+-- At first I was using <|>, but it accumulates thunks in memory :()
 until' :: (Int -> Maybe b) -> b
 until' f = go 1
   where
