@@ -25,16 +25,19 @@ part1 earliest = uncurry (*) . minimumBy (comparing snd) . map (id &&& minutesTo
     minutesToWait x = x - earliest `mod` x
 
 part2 :: [Integer] -> Integer
-part2 = chinese . filter (\(_, n) -> n >= 0) . zip [1..] . tail
-
-chinese :: [(Integer, Integer)] -> Integer
-chinese numbers = shame 1 (go 1 numbers) n0
+part2 (x:xs) = solve
   where
-    n0 = product (map fst numbers)
-    go _ [] = 0
-    go prev ((xm, x):xs) =
-      let n1 = prev * product (map fst xs)
-      in (x * shame 1 n1 xm) + go (xm * prev) xs
-    shame i n m
-      | (i * n) `mod` m == 1 = i * n
-      | otherwise = shame (i + 1) n m
+    solve = until' (\k -> findEarliest (x * k) constrained)
+    constrained = filter (\b -> fst b /= -1) $ zip xs [1..]
+    findEarliest !xk [] = Just xk
+    findEarliest !xk ((!busID, !i):bs)
+      | (xk + i) `mod` busID == 0 = findEarliest xk bs
+      | otherwise = Nothing
+
+-- At first I was using <|>, but it accumulates thunks in memory :()
+until' :: (Integer -> Maybe b) -> b
+until' f = go 1
+  where
+    go k = case f k of
+      Just r -> r
+      Nothing -> go (k + 1)
