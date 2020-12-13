@@ -36,7 +36,7 @@ part2 (x:xs) = solve
 
 -- At first I was using <|>, but it accumulates thunks in memory :()
 until' :: (Integer -> Maybe b) -> b
-until' f = go 1
+until' f = go 100000000000000
   where
     go k = case f k of
       Just r -> r
