@@ -25,19 +25,15 @@ part1 earliest = uncurry (*) . minimumBy (comparing snd) . map (id &&& minutesTo
     minutesToWait x = x - earliest `mod` x
 
 part2 :: [Integer] -> Integer
-part2 (x:xs) = solve
+part2 (x:xs) = solve 0 x (constrained xs)
   where
-    solve = until' (\k -> findEarliest (x * k) constrained)
-    constrained = filter (\b -> fst b /= -1) $ zip xs [1..]
-    findEarliest !xk [] = Just xk
-    findEarliest !xk ((!busID, !i):bs)
-      | (xk + i) `mod` busID == 0 = findEarliest xk bs
-      | otherwise = Nothing
+    constrained = filter ((>= 0) . snd) . zip [1..]
+    solve c p [] = c
+    solve c p ((w, b):ks) = let c' = findT c p w b in solve c' (p * b) ks
 
--- At first I was using <|>, but it accumulates thunks in memory :()
-until' :: (Integer -> Maybe b) -> b
-until' f = go 100000000000000
+findT :: Integer -> Integer -> Integer -> Integer -> Integer
+findT c p w b = go 1
   where
-    go k = case f k of
-      Just r -> r
-      Nothing -> go (k + 1)
+    go i
+      | (p * i + c + w) `mod` b == 0 = p * i + c
+      | otherwise = go (i + 1)
