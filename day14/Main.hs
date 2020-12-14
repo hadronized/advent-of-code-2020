@@ -12,7 +12,7 @@ main = do
     putStrLn $ "Part 2: " <> show (execute (\a v m -> fmap (\m' -> (mask a m', v)) $ maskPerm m) program)
   where
     parseInstr line = case break (== '=') line of
-      ("mask ", r) -> String (drop 2 r)
+      ("mask ", r) -> NewMask (drop 2 r)
       (_, r) ->
         let addr = read . takeWhile (/= ']') $ drop 4 line
             value = read (drop 2 r)
@@ -21,13 +21,13 @@ main = do
 execute :: (Int64 -> Int64 -> String -> [(Int64, Int64)]) -> [Instr] -> Int64
 execute extractValues = sum . elems . fst . foldl' executeInstr (empty, [])
   where
-    executeInstr (memory, _) (String m) = (memory, m)
+    executeInstr (memory, _) (NewMask m) = (memory, m)
     executeInstr (memory, m) (Write addr value) =
       let writes = extractValues addr value m
           memory' = foldl' (\mem (a, v) -> insert a v mem) memory writes
       in (memory', m)
 
-data Instr = String String | Write Int64 Int64 deriving (Show)
+data Instr = NewMask String | Write Int64 Int64 deriving (Show)
 
 parseNumber :: String -> Int64
 parseNumber = go 0
