@@ -19,7 +19,7 @@ main = do
         in Write addr value
 
 execute :: (Int64 -> Int64 -> String -> [(Int64, Int64)]) -> [Instr] -> Int64
-execute extractValues = sum . elems . fst . foldl' executeInstr (empty, replicate 36 'X')
+execute extractValues = sum . elems . fst . foldl' executeInstr (empty, [])
   where
     executeInstr (memory, _) (String m) = (memory, m)
     executeInstr (memory, m) (Write addr value) =
