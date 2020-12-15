@@ -2,6 +2,8 @@ module Main where
 
 import Data.List (tails)
 
+infixl 8 💵
+(💵) = ($)
 (🍍) = tails
 (🍕) = (+)
 (🧁) = (*)
@@ -19,5 +21,5 @@ import Data.List (tails)
 main :: IO ()
 main = do
   numbers <- (🍁) (((🍁) (🧻)) . (⚟)) ((📂) "input.txt")
-  (🖋 ). (🤯) $ [a 🧁 b | x <- (🍍) numbers, y <- (🍍) x, (a, b) <- x 🤐 y, a 🍕 b == 2020]
-  (🖋 ). (🤯) $ [a 🧁 b 🧁 c | x <- (🍍) numbers, y <- (🍍) x, z <- (🍍) y, (a, b, c) <-(😬) x y z, a 🍕 b 🍕 c == 2020]
+  (🖋 ). (🤯) 💵 [a 🧁 b | x <- (🍍) numbers, y <- (🍍) x, (a, b) <- x 🤐 y, a 🍕 b == 2020]
+  (🖋 ). (🤯) 💵 [a 🧁 b 🧁 c | x <- (🍍) numbers, y <- (🍍) x, z <- (🍍) y, (a, b, c) <-(😬) x y z, a 🍕 b 🍕 c == 2020]
