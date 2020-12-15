@@ -17,6 +17,4 @@ run initNumbers finalTurn = numberAtTurn (length initNumbers + 1) initSeen (last
     initSeen = fromList . flip zip [1..] $ init initNumbers
     numberAtTurn turn seen lastSpoken
       | turn > finalTurn = lastSpoken
-      | otherwise = case IM.lookup lastSpoken seen of
-          Just turnSpoken -> let n = (turn - 1 - turnSpoken) in numberAtTurn (turn + 1) (insert lastSpoken (turn - 1) seen) n
-          Nothing -> numberAtTurn (turn + 1) (insert lastSpoken (turn - 1) seen) 0
+      | otherwise = numberAtTurn (turn + 1) (insert lastSpoken (turn - 1) seen) $ maybe 0 (turn - 1 -) (IM.lookup lastSpoken seen)
