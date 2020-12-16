@@ -71,7 +71,7 @@ findOrders notes = reduceSet [] $ foldl' (\sets ticket -> updateFields sets $ zi
             known' = (setIndex, okay) : known
             sets' = fmap (S.delete okay) sets
         in reduceSet known' sets'
-      Nothing -> map snd $ sortBy (comparing fst) known
+      Nothing -> map fst $ sortBy (comparing snd) known
 
 checkFieldValidity :: Int -> (Int, Int) -> (Int, Int) -> Bool
 checkFieldValidity f (la, ua) (lb, ub) = (la <= f && f <= ua) || (lb <= f && f <= ub)
