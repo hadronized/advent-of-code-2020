@@ -4,7 +4,7 @@ import Data.Bifunctor (Bifunctor(..))
 import Data.Int (Int64)
 import Data.IntSet as S (delete, fromList, size, toList)
 import Data.List (find, foldl', isPrefixOf, groupBy, sortBy)
-import Data.Maybe (catMaybes, isNothing)
+import Data.Maybe (mapMaybe, isNothing)
 import Data.Ord (comparing)
 import Data.Vector as V ((!), findIndex, imap, replicate)
 
@@ -36,7 +36,7 @@ parseNotes raw = Notes classes myTicket nearbyTickets
     parseTicket = map read . filter (/= ",") . groupBy (\a b -> a /= ',' && b /= ',')
 
 part1 :: Notes -> Int
-part1 notes = sum . catMaybes . map (invalid unnamedRules) $ nearbyTickets notes
+part1 notes = sum . mapMaybe (invalid unnamedRules) $ nearbyTickets notes
   where
     unnamedRules = map (\(_, a, b) -> (a, b)) (getClasses notes)
 
@@ -47,12 +47,12 @@ part2 notes = departures
     classes = map (\(n, _, _) -> n) (getClasses notes)
     reorderedClasses = [classes !! order | order <- orders]
     myFixedTicket = zip reorderedClasses (myTicket notes)
-    departures = product . map (fromIntegral . snd) . filter ((isPrefixOf "departure") . fst) $ myFixedTicket
+    departures = product . map (fromIntegral . snd) . filter (isPrefixOf "departure" . fst) $ myFixedTicket
 
 findOrders :: Notes -> [Int]
 findOrders notes = reduceSet [] $ foldl' (\sets ticket -> updateFields sets $ zip [0..] ticket) fields tickets
   where
-    tickets = filter (\ticket -> isNothing $ invalid unnamedRules ticket) $ nearbyTickets notes
+    tickets = filter (isNothing . invalid unnamedRules) $ nearbyTickets notes
     unnamedRules = map (\(_, a, b) -> (a, b)) (getClasses notes)
     fieldsNb = length (head tickets)
     allFieldsSet = S.fromList [ 0 .. fieldsNb - 1]
