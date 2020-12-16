@@ -1,13 +1,12 @@
 module Main where
 
 import Data.Bifunctor (Bifunctor(..))
-import Data.Foldable (find)
 import Data.Int (Int64)
-import Data.IntSet as S (IntSet, delete, empty, fromList, insert, size, toList)
-import Data.List as L (find, foldl', isPrefixOf, groupBy, sortBy)
-import Data.Maybe (catMaybes, fromJust, isJust, isNothing)
+import Data.IntSet as S (delete, fromList, size, toList)
+import Data.List (find, foldl', isPrefixOf, groupBy, sortBy)
+import Data.Maybe (catMaybes, isNothing)
 import Data.Ord (comparing)
-import Data.Vector as V ((!), (//), Vector, find, findIndex, imap, replicate)
+import Data.Vector as V ((!), findIndex, imap, replicate)
 
 main :: IO ()
 main = do
@@ -77,4 +76,4 @@ checkFieldValidity :: Int -> (Int, Int) -> (Int, Int) -> Bool
 checkFieldValidity f (la, ua) (lb, ub) = (la <= f && f <= ua) || (lb <= f && f <= ub)
 
 invalid :: [((Int, Int), (Int, Int))] -> [Int] -> Maybe Int
-invalid unnamedRules = L.find $ \f -> all (\r -> not $ uncurry (checkFieldValidity f) r) unnamedRules
+invalid unnamedRules = find $ \f -> all (\r -> not $ uncurry (checkFieldValidity f) r) unnamedRules
