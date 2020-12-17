@@ -4,18 +4,18 @@ import Control.Monad (replicateM)
 import Data.Foldable (foldl')
 import Data.Map as M (Map, empty, foldlWithKey, insert, insertWith, lookup, mapWithKey)
 
-type Universe3 = Map [Int] Bool
+type Universe = Map [Int] Bool
 
 main :: IO ()
 main = do
-    universe <- parseUniverse3 <$> readFile "input.txt" -- I have no shame
+    universe <- parseUniverse <$> readFile "input.txt" -- I have no shame
     universe' <- parseUniverse4 <$> readFile "input.txt" -- lol
     let universe6 = iterate step universe !! 6
     let universe6' = iterate step universe' !! 6
     putStrLn $ "Part 1: " <> show (countAlive universe6)
     putStrLn $ "Part 2: " <> show (countAlive universe6')
   where
-    parseUniverse3 = foldl' parseSlice3 empty . zip [0..] . lines
+    parseUniverse = foldl' parseSlice3 empty . zip [0..] . lines
     parseSlice3 universe (y, line) = foldl' parseCell universe $ zip [0..] line
       where
         parseCell universe (x, '#') = insert [x, y, 0] True universe
@@ -26,7 +26,7 @@ main = do
         parseCell universe (x, '#') = insert [x, y, 0, 0] True universe
         parseCell universe (x, '.') = insert [x, y, 0, 0] False universe
 
-step :: Universe3 -> Universe3
+step :: Universe -> Universe
 step = mutate . inflate
   where
     -- inflate a universe; what it means is that for a given universe, it will automatically generate void cells on its
@@ -48,5 +48,5 @@ countAlive = sum . fmap fromEnum
 neighbors :: [Int] -> [[Int]]
 neighbors p = tail [zipWith (+) p x | x <- replicateM (length p) [0, -1, 1]]
 
-neighborCells :: Universe3 -> [Int] -> [([Int], Bool)]
+neighborCells :: Universe -> [Int] -> [([Int], Bool)]
 neighborCells universe = map (\p -> (p, M.lookup p universe == Just True)) . neighbors
