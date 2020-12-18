@@ -23,7 +23,7 @@ parseExpr prec' = parse prec' [] 0
       | isNumber c = parse prec stack (n * 10 + digitToInt c) s
       | otherwise = parse prec (Op c : reduceStack False prec (Number n : stack)) 0 s
     reduceStack _ _ [] = []
-    reduceStack True prec (Number n : NewExpr : s) = Number n : s
+    reduceStack True _ (Number n : NewExpr : s) = Number n : s
     reduceStack parens prec (Number _ : r@(Number _ : _)) = reduceStack parens prec r
     reduceStack parens False (Number a : Op op : Number b : s) = reduceStack parens False $ Number (applyOp op b a) : s
     reduceStack parens True (Number a : Op op : Number b : s)
