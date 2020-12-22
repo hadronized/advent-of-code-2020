@@ -45,10 +45,12 @@ main = do
 
     let topLeft = topLeftPiece connectivity corners
         puzzle = buildPuzzle topLeft pieces connectivity
-    print $ length puzzle
-    print $ length (head puzzle)
-    let [south] = filter (/= pieceID topLeft) . fromJust $ M.lookup (pieceBorders topLeft !! southi) connectivity
-    print $ M.lookup south pieces
+        [eastID] = fromJust $ M.lookup (pieceBorders topLeft !! easti) connectivity
+        east = fromJust $ M.lookup eastID pieces
+
+    print topLeft
+    print east
+
   where
     parsePuzzle = M.fromList . map parsePiece . filter (not . null . head) . groupBy ((&&) `on` not . null) . lines
     parsePiece (title:parts) =
@@ -76,11 +78,11 @@ clockWiseRot90 :: [[a]] -> [[a]]
 clockWiseRot90 ([]:_) = []
 clockWiseRot90 l = reverse (map head l) : clockWiseRot90 (map tail l)
 
-northi, westi, southi, easti :: Int
+northi, easti, southi, westi :: Int
 northi = 0
-westi = 1
+easti = 1
 southi = 2
-easti = 3
+westi = 3
 
 -- | Extract all borders of a piece in the following order: [N, E, S, W].
 extractBorders :: Parts -> Parts
@@ -124,14 +126,14 @@ connectedPieces = foldl' f M.empty . M.toList
 topLeftPiece :: Map Int [Int] -> [Piece] -> Piece
 topLeftPiece connectivity corners = fromJust . flip find corners $ \piece ->
   let borders = pieceBorders piece
-      westSouthOnly = do
+      eastSouthOnly = do
         north <- M.lookup (borders !! northi) connectivity
         west <- M.lookup (borders !! westi) connectivity
         south <- M.lookup (borders !! southi) connectivity
         east <- M.lookup (borders !! easti) connectivity
 
-        pure $ length north == 1 && length east == 1 && length west == 2 && length south == 2
-  in westSouthOnly == Just True
+        pure $ length north == 1 && length west == 1 && length east == 2 && length south == 2
+  in eastSouthOnly == Just True
 
 -- Build the puzzle (list version)
 buildPuzzle :: Piece -> Map Int Piece -> Map Int [Int] -> [[Parts]]
@@ -140,8 +142,7 @@ buildPuzzle topLeft pieces connectivity = buildSouth topLeft
     buildSouth piece =
       let southPieceIDs = filter (/= pieceID piece) . fromJust $ M.lookup (pieceBorders piece !! southi) connectivity
           [southPieceID] = southPieceIDs
-      in unfoldr buildEast (Just piece) : if null southPieceIDs then [] else buildSouth (correctedSouthPiece piece . fromJust $ M.lookup southPieceID pieces)
-    buildEast :: Maybe Piece -> Maybe (Parts, Maybe Piece)
+      in [unfoldr buildEast (Just piece)]-- : if null southPieceIDs then [] else buildSouth (correctedSouthPiece piece . fromJust $ M.lookup southPieceID pieces)
     buildEast Nothing = Nothing
     buildEast (Just piece) =
       let eastPieceIDs = filter (/= pieceID piece) . fromJust $ M.lookup (pieceBorders piece !! easti) connectivity
@@ -150,8 +151,12 @@ buildPuzzle topLeft pieces connectivity = buildSouth topLeft
     correctedEastPiece piece eastPiece =
       let eastParts = pieceParts eastPiece
           westBorder = extractWestBorder eastParts
-      in eastPiece { pieceParts = if extractEastBorder (pieceParts piece) == westBorder then hflip eastParts else eastParts }
+          parts = if extractEastBorder (pieceParts piece) == westBorder then hflip eastParts else eastParts
+          borders = map borderToInt (extractBorders parts)
+      in eastPiece { pieceParts = parts, pieceBorders = borders }
     correctedSouthPiece piece southPiece =
       let southParts = pieceParts southPiece
           northBorder = extractNorthBorder southParts
-      in southPiece { pieceParts = if extractSouthBorder (pieceParts piece) == northBorder then vflip southParts else southParts }
+          parts = if extractSouthBorder (pieceParts piece) == northBorder then vflip southParts else southParts
+          borders = map borderToInt (extractBorders parts)
+      in southPiece { pieceParts = parts, pieceBorders = borders }
