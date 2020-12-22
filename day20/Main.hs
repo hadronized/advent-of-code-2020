@@ -45,12 +45,8 @@ main = do
 
     let topLeft = topLeftPiece connectivity corners
         puzzle = buildPuzzle topLeft pieces connectivity
-        [eastID] = fromJust $ M.lookup (pieceBorders topLeft !! easti) connectivity
-        east = fromJust $ M.lookup eastID pieces
-
-    print topLeft
-    print east
-
+    print $ length puzzle
+    print $ length $ head puzzle
   where
     parsePuzzle = M.fromList . map parsePiece . filter (not . null . head) . groupBy ((&&) `on` not . null) . lines
     parsePiece (title:parts) =
@@ -142,21 +138,25 @@ buildPuzzle topLeft pieces connectivity = buildSouth topLeft
     buildSouth piece =
       let southPieceIDs = filter (/= pieceID piece) . fromJust $ M.lookup (pieceBorders piece !! southi) connectivity
           [southPieceID] = southPieceIDs
-      in [unfoldr buildEast (Just piece)]-- : if null southPieceIDs then [] else buildSouth (correctedSouthPiece piece . fromJust $ M.lookup southPieceID pieces)
+      in unfoldr buildEast (Just piece) : if null southPieceIDs then [] else buildSouth (correctedSouthPiece piece . fromJust $ M.lookup southPieceID pieces)
     buildEast Nothing = Nothing
     buildEast (Just piece) =
       let eastPieceIDs = filter (/= pieceID piece) . fromJust $ M.lookup (pieceBorders piece !! easti) connectivity
           [eastPieceID] = eastPieceIDs
       in if null eastPieceIDs then Just (pieceParts piece, Nothing) else Just (pieceParts piece, fmap (correctedEastPiece piece) $ M.lookup eastPieceID pieces)
-    correctedEastPiece piece eastPiece =
-      let eastParts = pieceParts eastPiece
-          westBorder = extractWestBorder eastParts
-          parts = if extractEastBorder (pieceParts piece) == westBorder then hflip eastParts else eastParts
-          borders = map borderToInt (extractBorders parts)
-      in eastPiece { pieceParts = parts, pieceBorders = borders }
-    correctedSouthPiece piece southPiece =
-      let southParts = pieceParts southPiece
-          northBorder = extractNorthBorder southParts
-          parts = if extractSouthBorder (pieceParts piece) == northBorder then vflip southParts else southParts
-          borders = map borderToInt (extractBorders parts)
-      in southPiece { pieceParts = parts, pieceBorders = borders }
+    correctedEastPiece = transformUntilMatch extractEastBorder extractWestBorder
+    correctedSouthPiece = transformUntilMatch extractSouthBorder extractNorthBorder
+
+-- | Transform a piece’s parts until it matches the border of the first part.
+transformUntilMatch :: (Parts -> [Char]) -> (Parts -> [Char]) -> Piece -> Piece -> Piece
+transformUntilMatch truth project refPiece victim = victim { pieceParts = parts, pieceBorders = borders }
+  where
+    parts = fromJust . find ((== refBorder) . project) $ transforms <*> [pieceParts victim, hflip $ pieceParts victim]
+    borders = map borderToInt (extractBorders parts)
+    refBorder = reverse (truth $ pieceParts refPiece)
+    transforms = [id, clockWiseRot90, times 2 clockWiseRot90, times 3 clockWiseRot90]
+
+-- | Apply a function N times (similar to stimes for endofunctors).
+times :: Int -> (a -> a) -> a -> a
+times 1 f = f
+times n f = f . times (n - 1) f
