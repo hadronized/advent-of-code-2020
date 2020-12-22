@@ -20,6 +20,7 @@
 
 module Main where
 
+import Control.Monad (join)
 import Data.Function (on)
 import Data.Foldable (find, foldl', traverse_)
 import Data.List (groupBy, unfoldr)
@@ -47,9 +48,10 @@ main = do
     let topLeft = topLeftPiece connectivity corners
         puzzle = buildPuzzle topLeft pieces connectivity
         vpuzzle = vectorPuzzle puzzle
+        glued = concatMap glueParts puzzle
 
-    print $ V.length vpuzzle
-    print $ length $ puzzle
+    print $ length glued
+    print $ map length glued
   where
     parsePuzzle = M.fromList . map parsePiece . filter (not . null . head) . groupBy ((&&) `on` not . null) . lines
     parsePiece (title:parts) =
@@ -166,10 +168,11 @@ times n f = f . times (n - 1) f
 
 -- | Build the Vector representation of a puzzle.
 vectorPuzzle :: [[Parts]] -> V.Vector Char
-vectorPuzzle = V.fromList . concat . concatMap (glueParts . map removeBorders)
+vectorPuzzle = V.fromList . concat . concatMap (glueParts . map id)
   where
-    glueParts :: [Parts] -> Parts
-    glueParts (([]:_):_) = []
-    glueParts blocks = concatMap (map head) blocks : glueParts (map (map tail) blocks)
     removeBorders :: Parts -> Parts
     removeBorders = map (tail . init) . tail . init
+
+glueParts :: [Parts] -> Parts
+glueParts ([]:_) = []
+glueParts l = concatMap head l : glueParts (map tail l)
