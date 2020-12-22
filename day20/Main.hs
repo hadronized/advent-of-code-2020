@@ -21,11 +21,12 @@
 module Main where
 
 import Data.Function (on)
-import Data.Foldable (find, foldl')
+import Data.Foldable (find, foldl', traverse_)
 import Data.List (groupBy, unfoldr)
 import Data.Map (Map)
 import Data.Maybe (fromJust, fromMaybe)
 import qualified Data.Map as M
+import qualified Data.Vector as V
 
 data Piece = Piece {
     pieceID :: Int
@@ -45,8 +46,10 @@ main = do
 
     let topLeft = topLeftPiece connectivity corners
         puzzle = buildPuzzle topLeft pieces connectivity
-    print $ length puzzle
-    print $ length $ head puzzle
+        vpuzzle = vectorPuzzle puzzle
+
+    print $ V.length vpuzzle
+    print $ length $ puzzle
   where
     parsePuzzle = M.fromList . map parsePiece . filter (not . null . head) . groupBy ((&&) `on` not . null) . lines
     parsePiece (title:parts) =
@@ -160,3 +163,13 @@ transformUntilMatch truth project refPiece victim = victim { pieceParts = parts,
 times :: Int -> (a -> a) -> a -> a
 times 1 f = f
 times n f = f . times (n - 1) f
+
+-- | Build the Vector representation of a puzzle.
+vectorPuzzle :: [[Parts]] -> V.Vector Char
+vectorPuzzle = V.fromList . concat . concatMap (glueParts . map removeBorders)
+  where
+    glueParts :: [Parts] -> Parts
+    glueParts (([]:_):_) = []
+    glueParts blocks = concatMap (map head) blocks : glueParts (map (map tail) blocks)
+    removeBorders :: Parts -> Parts
+    removeBorders = map (tail . init) . tail . init
