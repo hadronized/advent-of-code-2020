@@ -82,14 +82,14 @@ westi = 1
 southi = 2
 easti = 3
 
--- | Extract all borders of a piece in the following order: [N, W, S, E].
+-- | Extract all borders of a piece in the following order: [N, E, S, W].
 extractBorders :: Parts -> Parts
-extractBorders parts = [north, west, south, east]
+extractBorders parts = [north, east, south, west]
   where
     north = extractNorthBorder parts
+    east = extractEastBorder parts
     south = extractSouthBorder parts
     west = extractWestBorder parts
-    east = extractEastBorder parts
 
 extractNorthBorder :: Parts -> [Char]
 extractNorthBorder = head
@@ -98,10 +98,10 @@ extractSouthBorder :: Parts -> [Char]
 extractSouthBorder = last
 
 extractWestBorder :: Parts -> [Char]
-extractWestBorder = map last
+extractWestBorder = map head
 
 extractEastBorder :: Parts -> [Char]
-extractEastBorder = map head
+extractEastBorder = map last
 
 -- | Switch from a raw border representation to a numeric representation.
 borderToInt :: [Char] -> Int
